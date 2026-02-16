@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { weeklyActivity, heatmapData } from '@/lib/data';
+import { weeklyActivity } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import {
   Tooltip as ShadTooltip,
@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useEffect, useState } from 'react';
 
 const WeeklyActivityChart = () => {
   return (
@@ -44,6 +45,20 @@ const WeeklyActivityChart = () => {
 };
 
 const ProgressHeatmap = () => {
+  const [heatmapData, setHeatmapData] = useState<Array<{date: string, count: number}>>([]);
+
+  useEffect(() => {
+    const data = Array.from({ length: 365 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - 365 + i);
+      return {
+          date: date.toISOString().slice(0, 10),
+          count: Math.floor(Math.random() * 150),
+      };
+    });
+    setHeatmapData(data);
+  }, []);
+
   const getDotColor = (count: number) => {
     if (count === 0) return 'bg-muted/20';
     if (count < 20) return 'bg-primary/20';
@@ -51,6 +66,24 @@ const ProgressHeatmap = () => {
     if (count < 100) return 'bg-primary/70';
     return 'bg-primary';
   };
+  
+  if (heatmapData.length === 0) {
+    return (
+      <Card className="bg-card/50 border-border/50">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl">Yearly Progress</CardTitle>
+          <CardDescription>Visual representation of your grind.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 sm:grid-cols-10 md:grid-cols-14 lg:grid-cols-20 xl:grid-cols-26 gap-1 animate-pulse">
+            {Array.from({ length: 365 }).map((_, i) => (
+              <div key={i} className="h-3 w-3 rounded-sm bg-muted/20" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-card/50 border-border/50">

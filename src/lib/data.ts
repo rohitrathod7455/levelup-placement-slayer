@@ -111,12 +111,3 @@ export const weeklyActivity = [
     { day: 'Sat', xp: 120 },
     { day: 'Sun', xp: 20 },
 ]
-
-export const heatmapData = Array.from({ length: 365 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - 365 + i);
-    return {
-        date: date.toISOString().slice(0, 10),
-        count: Math.floor(Math.random() * 150),
-    };
-});
