@@ -67,7 +67,7 @@ Act as a mentor in a gamified productivity app inspired by "Solo Leveling". Your
 
 Here is the user's current data:
 
-Player Stats: {{{JSON currentStats}}}
+Player Stats: {{{json currentStats}}}
 Current Level: {{{currentLevel}}}
 Current Rank: {{{currentRank}}}
 
