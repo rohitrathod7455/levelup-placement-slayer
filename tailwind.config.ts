@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+        headline: ['"Space Grotesk"', 'sans-serif'],
+        code: ['"Source Code Pro"', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -88,10 +88,30 @@ export default {
             height: '0',
           },
         },
+        'aura-pulse': {
+          '0%, 100%': {
+            boxShadow: '0 0 0 0 hsl(var(--primary) / 0.7)',
+          },
+          '70%': {
+            boxShadow: '0 0 0 10px hsl(var(--primary) / 0)',
+          },
+        },
+        'fire-flicker': {
+          '0%, 100%': {
+            textShadow: '0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))',
+            opacity: '1',
+          },
+          '50%': {
+            textShadow: '0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary) / 0.5)',
+            opacity: '0.8',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'aura-pulse': 'aura-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fire-flicker': 'fire-flicker 1.5s ease-in-out infinite alternate',
       },
     },
   },
