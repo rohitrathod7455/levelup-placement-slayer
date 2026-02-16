@@ -10,7 +10,7 @@ type StatsRadarChartProps = {
 
 export const StatsRadarChart = ({ stats }: StatsRadarChartProps) => {
   const data = Object.entries(stats).map(([name, value]) => ({
-    subject: name,
+    subject: name.charAt(0).toUpperCase() + name.slice(1),
     value: value,
   }));
 

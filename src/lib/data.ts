@@ -1,22 +1,22 @@
 import { BrainCircuit, Repeat, Swords, Target, Zap } from 'lucide-react';
 import { Icon } from '@/components/icons';
 
-export type StatName = 'Discipline' | 'Intelligence' | 'Strength' | 'Consistency' | 'Focus';
+export type StatName = 'discipline' | 'intelligence' | 'strength' | 'consistency' | 'focus';
 
 export const statIcons: Record<StatName, Icon> = {
-  Discipline: Zap,
-  Intelligence: BrainCircuit,
-  Strength: Swords,
-  Consistency: Repeat,
-  Focus: Target,
+  discipline: Zap,
+  intelligence: BrainCircuit,
+  strength: Swords,
+  consistency: Repeat,
+  focus: Target,
 };
 
 export interface Stats {
-  Discipline: number;
-  Intelligence: number;
-  Strength: number;
-  Consistency: number;
-  Focus: number;
+  discipline: number;
+  intelligence: number;
+  strength: number;
+  consistency: number;
+  focus: number;
 }
 
 export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'SS' | 'Monarch';
@@ -52,11 +52,11 @@ export const initialPlayerData: Player = {
   rank: 'E',
   streak: 0,
   stats: {
-    Discipline: 10,
-    Intelligence: 10,
-    Strength: 10,
-    Consistency: 10,
-    Focus: 10,
+    discipline: 10,
+    intelligence: 10,
+    strength: 10,
+    consistency: 10,
+    focus: 10,
   },
 };
 
@@ -69,23 +69,23 @@ export interface Quest {
 }
 
 export const mainQuests: Quest[] = [
-  { id: 'mq1', title: 'Solve 3 DSA problems', xp: 50, stat: 'Intelligence', completed: false },
-  { id: 'mq2', title: 'Revise 1 core subject topic', xp: 25, stat: 'Intelligence', completed: false },
-  { id: 'mq3', title: '30 min aptitude practice', xp: 25, stat: 'Focus', completed: false },
+  { id: 'mq1', title: 'Solve 3 DSA problems', xp: 50, stat: 'intelligence', completed: false },
+  { id: 'mq2', title: 'Revise 1 core subject topic', xp: 25, stat: 'intelligence', completed: false },
+  { id: 'mq3', title: '30 min aptitude practice', xp: 25, stat: 'focus', completed: false },
 ];
 
 export const sideQuests: Quest[] = [
-  { id: 'sq1', title: 'Workout', xp: 30, stat: 'Strength', completed: false },
-  { id: 'sq2', title: 'No phone after 11 PM', xp: 20, stat: 'Discipline', completed: false },
-  { id: 'sq3', title: 'Improve resume', xp: 10, stat: 'Consistency', completed: false },
-  { id: 'sq4', title: 'Post on LinkedIn', xp: 10, stat: 'Consistency', completed: false },
+  { id: 'sq1', title: 'Workout', xp: 30, stat: 'strength', completed: false },
+  { id: 'sq2', title: 'No phone after 11 PM', xp: 20, stat: 'discipline', completed: false },
+  { id: 'sq3', title: 'Improve resume', xp: 10, stat: 'consistency', completed: false },
+  { id: 'sq4', title: 'Post on LinkedIn', xp: 10, stat: 'consistency', completed: false },
 ];
 
 export const emergencyQuest: Quest = {
   id: 'eq1',
   title: 'Hunter in Danger – Recover 150 XP Today',
   xp: 0,
-  stat: 'Discipline',
+  stat: 'discipline',
   completed: false,
 };
 
