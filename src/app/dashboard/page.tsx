@@ -96,9 +96,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col flex-1">
       <Header player={player} />
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             <QuestBoard quests={quests} onQuestComplete={handleQuestCompletion} />
