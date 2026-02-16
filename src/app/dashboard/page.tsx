@@ -28,23 +28,25 @@ export default function DashboardPage() {
   const { toast } = useToast();
 
   const handleQuestCompletion = (questId: string, questType: keyof typeof quests) => {
-    let questToComplete: Quest | undefined;
-    const newQuests = { ...quests };
+    const questToComplete =
+      questType === 'emergency'
+        ? quests.emergency
+        : (quests[questType] as Quest[]).find(q => q.id === questId);
 
-    if (questType === 'emergency') {
-        questToComplete = newQuests.emergency;
-        if(questToComplete) newQuests.emergency.completed = true;
-    } else {
-        const qList = newQuests[questType] as Quest[];
-        questToComplete = qList.find(q => q.id === questId);
-        if (questToComplete) {
-            const index = qList.indexOf(questToComplete);
-            newQuests[questType][index].completed = true;
-        }
-    }
-
-    if (questToComplete) {
-      setQuests(newQuests);
+    if (questToComplete && !questToComplete.completed) {
+      if (questType === 'emergency') {
+        setQuests(prevQuests => ({
+          ...prevQuests,
+          emergency: { ...prevQuests.emergency, completed: true },
+        }));
+      } else {
+        setQuests(prevQuests => ({
+          ...prevQuests,
+          [questType]: (prevQuests[questType] as Quest[]).map(q =>
+            q.id === questId ? { ...q, completed: true } : q
+          ),
+        }));
+      }
       updatePlayerStats(questToComplete);
     }
   };

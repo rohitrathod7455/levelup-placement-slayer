@@ -46,8 +46,10 @@ const WeeklyActivityChart = () => {
 
 const ProgressHeatmap = () => {
   const [heatmapData, setHeatmapData] = useState<Array<{date: string, count: number}>>([]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     const data = Array.from({ length: 365 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - 365 + i);
@@ -67,7 +69,7 @@ const ProgressHeatmap = () => {
     return 'bg-primary';
   };
   
-  if (heatmapData.length === 0) {
+  if (!isClient) {
     return (
       <Card className="bg-card/50 border-border/50">
         <CardHeader>
