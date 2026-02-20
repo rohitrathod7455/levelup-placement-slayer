@@ -10,6 +10,7 @@ import {
   ranks,
   Player,
   Quest,
+  weeklyActivity as initialWeeklyActivityData,
 } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { QuestBoard } from '@/components/dashboard/quest-board';
@@ -25,6 +26,9 @@ export default function DashboardPage() {
     side: sideQuests,
     emergency: emergencyQuest,
   });
+  const [weeklyActivity, setWeeklyActivity] = useState(
+    initialWeeklyActivityData.map(d => ({ ...d, xp: 0 })),
+  );
   const { toast } = useToast();
 
   const handleQuestCompletion = (questId: string, questType: keyof typeof quests) => {
@@ -34,83 +38,91 @@ export default function DashboardPage() {
         : quests[questType].find(q => q.id === questId);
 
     if (questToComplete && !questToComplete.completed) {
-        setQuests(prevQuests => {
-            if (questType === 'emergency') {
-                return {
-                    ...prevQuests,
-                    emergency: { ...prevQuests.emergency, completed: true },
-                };
-            }
-            return {
-                ...prevQuests,
-                [questType]: prevQuests[questType].map(q =>
-                    q.id === questId ? { ...q, completed: true } : q
-                ),
-            };
-        });
-        updatePlayerStats(questToComplete);
-    }
-  };
+      setQuests(prevQuests => {
+        if (questType === 'emergency') {
+          return {
+            ...prevQuests,
+            emergency: { ...prevQuests.emergency, completed: true },
+          };
+        }
+        return {
+          ...prevQuests,
+          [questType]: prevQuests[questType].map(q =>
+            q.id === questId ? { ...q, completed: true } : q,
+          ),
+        };
+      });
 
-  const updatePlayerStats = (quest: Quest) => {
-    const {
-      xp: prevXp,
-      level: prevLevel,
-      rank: prevRank,
-      stats: prevStats,
-      streak: prevStreak,
-    } = player;
+      const {
+        xp: prevXp,
+        level: prevLevel,
+        rank: prevRank,
+        stats: prevStats,
+        streak: prevStreak,
+      } = player;
 
-    const newXp = prevXp + quest.xp;
-    const newStats = {
-      ...prevStats,
-      [quest.stat]: prevStats[quest.stat] + 1,
-    };
+      const newXp = prevXp + questToComplete.xp;
+      const newStats = {
+        ...prevStats,
+        [questToComplete.stat]: prevStats[questToComplete.stat] + 1,
+      };
 
-    let newLevel = prevLevel;
-    let finalXp = newXp;
-    let leveledUp = false;
+      let newLevel = prevLevel;
+      let finalXp = newXp;
+      let leveledUp = false;
 
-    const xpForNextLevel = levelUpFormula(prevLevel);
-    if (finalXp >= xpForNextLevel) {
-      newLevel += 1;
-      finalXp -= xpForNextLevel;
-      leveledUp = true;
-    }
-
-    const newRankEntry = Object.entries(ranks)
-      .sort(([, a], [, b]) => b.minLevel - a.minLevel)
-      .find(([, details]) => newLevel >= details.minLevel);
-    
-    let newRank = prevRank;
-    if (newRankEntry) {
-      const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
-      if (potentialNewRank !== prevRank) {
-        newRank = potentialNewRank;
+      const xpForNextLevel = levelUpFormula(prevLevel);
+      if (finalXp >= xpForNextLevel) {
+        newLevel += 1;
+        finalXp -= xpForNextLevel;
+        leveledUp = true;
       }
-    }
 
-    setPlayer({
-      ...player,
-      xp: finalXp,
-      level: newLevel,
-      rank: newRank,
-      stats: newStats,
-      streak: prevStreak + 1,
-    });
+      const newRankEntry = Object.entries(ranks)
+        .sort(([, a], [, b]) => b.minLevel - a.minLevel)
+        .find(([, details]) => newLevel >= details.minLevel);
+      
+      let newRank = prevRank;
+      if (newRankEntry) {
+        const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
+        if (potentialNewRank !== prevRank) {
+          newRank = potentialNewRank;
+        }
+      }
 
-    if (leveledUp) {
-      toast({
-        title: 'LEVEL UP!',
-        description: `You have reached Level ${newLevel}!`,
+      setPlayer({
+        ...player,
+        xp: finalXp,
+        level: newLevel,
+        rank: newRank,
+        stats: newStats,
+        streak: prevStreak + 1,
       });
-    }
-
-    if (newRank !== prevRank) {
-      toast({
-        title: 'RANK PROMOTION!',
-        description: `You have been promoted to ${newRank} Rank!`,
+      
+      setWeeklyActivity(currentActivity => {
+        const today = new Date();
+        const dayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1; // 0 = Mon, 6 = Sun
+        const newActivity = [...currentActivity];
+        newActivity[dayIndex] = {
+          ...newActivity[dayIndex],
+          xp: newActivity[dayIndex].xp + questToComplete.xp,
+        };
+        return newActivity;
       });
+
+      if (leveledUp) {
+        toast({
+          title: 'LEVEL UP!',
+          description: `You have reached Level ${newLevel}!`,
+        });
+      }
+
+      if (newRank !== prevRank) {
+        toast({
+          title: 'RANK PROMOTION!',
+          description: `You have been promoted to ${newRank} Rank!`,
+        });
+      }
     }
   };
 
@@ -121,7 +133,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             <QuestBoard quests={quests} onQuestComplete={handleQuestCompletion} />
-            <ActivityCharts />
+            <ActivityCharts weeklyActivityData={weeklyActivity} />
           </div>
           <div className="space-y-6">
             <StatsRadarChart stats={player.stats} />

@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { weeklyActivity } from '@/lib/data';
+import { weeklyActivity as staticWeeklyActivity } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import {
   Tooltip as ShadTooltip,
@@ -12,7 +12,13 @@ import {
 } from '@/components/ui/tooltip';
 import { useEffect, useState } from 'react';
 
-const WeeklyActivityChart = () => {
+type WeeklyActivityData = {
+    day: string;
+    xp: number;
+}[];
+
+
+const WeeklyActivityChart = ({ data }: { data: WeeklyActivityData }) => {
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
@@ -21,7 +27,7 @@ const WeeklyActivityChart = () => {
       </CardHeader>
       <CardContent className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeklyActivity}>
+          <BarChart data={data}>
              <defs>
                 <linearGradient id="bar-fill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
@@ -113,10 +119,10 @@ const ProgressHeatmap = () => {
   );
 };
 
-export const ActivityCharts = () => {
+export const ActivityCharts = ({ weeklyActivityData }: { weeklyActivityData?: WeeklyActivityData }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <WeeklyActivityChart />
+      <WeeklyActivityChart data={weeklyActivityData || staticWeeklyActivity} />
       <ProgressHeatmap />
     </div>
   );
