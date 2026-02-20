@@ -50,7 +50,7 @@ export const initialPlayerData: Player = {
   level: 1,
   xp: 0,
   rank: 'E',
-  streak: 0,
+  streak: 7,
   stats: {
     discipline: 10,
     intelligence: 10,
@@ -91,14 +91,14 @@ export const emergencyQuest: Quest = {
 
 export const achievements = [
     { id: 'ach1', title: 'First Blood', description: 'First task completed', icon: '🩸', unlocked: true },
-    { id: 'ach2', title: 'Dungeon Survivor', description: '7-day streak', icon: '🛡️', unlocked: false },
+    { id: 'ach2', title: 'Dungeon Survivor', description: '7-day streak', icon: '🛡️', unlocked: true },
     { id: 'ach3', title: 'Elite Hunter', description: '30-day streak', icon: '⚔️', unlocked: false },
     { id: 'ach4', title: 'Placement Slayer', description: '60-day streak', icon: '👑', unlocked: false },
 ]
 
 export const personalBests = [
     { title: 'Highest Level Achieved', value: '1', icon: 'ArrowUp' },
-    { title: 'Longest Streak', value: '0 days', icon: 'Flame' },
+    { title: 'Longest Streak', value: '7 days', icon: 'Flame' },
     { title: 'Total XP Earned', value: '0', icon: 'Star' },
 ]
 
