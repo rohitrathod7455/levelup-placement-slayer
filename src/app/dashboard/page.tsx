@@ -43,7 +43,7 @@ export default function DashboardPage() {
             }
             return {
                 ...prevQuests,
-                [questType]: (prevQuests[questType] as Quest[]).map(q =>
+                [questType]: prevQuests[questType].map(q =>
                     q.id === questId ? { ...q, completed: true } : q
                 ),
             };
@@ -53,56 +53,71 @@ export default function DashboardPage() {
   };
 
   const updatePlayerStats = (quest: Quest) => {
-    setPlayer(prevPlayer => {
-      let newXp = prevPlayer.xp + quest.xp;
-      let newLevel = prevPlayer.level;
-      let newRank = prevPlayer.rank;
+    const {
+      xp: prevXp,
+      level: prevLevel,
+      rank: prevRank,
+      stats: prevStats,
+      streak: prevStreak,
+    } = player;
 
-      const newStats = {
-        ...prevPlayer.stats,
-        [quest.stat]: prevPlayer.stats[quest.stat] + 1,
-      };
+    const newXp = prevXp + quest.xp;
+    const newStats = {
+      ...prevStats,
+      [quest.stat]: prevStats[quest.stat] + 1,
+    };
 
-      const xpForNextLevel = levelUpFormula(prevPlayer.level);
-      if (newXp >= xpForNextLevel) {
-        newLevel += 1;
-        newXp -= xpForNextLevel;
-        toast({
-          title: 'LEVEL UP!',
-          description: `You have reached Level ${newLevel}!`,
-        });
+    let newLevel = prevLevel;
+    let finalXp = newXp;
+    let leveledUp = false;
+
+    const xpForNextLevel = levelUpFormula(prevLevel);
+    if (finalXp >= xpForNextLevel) {
+      newLevel += 1;
+      finalXp -= xpForNextLevel;
+      leveledUp = true;
+    }
+
+    const newRankEntry = Object.entries(ranks)
+      .sort(([, a], [, b]) => b.minLevel - a.minLevel)
+      .find(([, details]) => newLevel >= details.minLevel);
+    
+    let newRank = prevRank;
+    if (newRankEntry) {
+      const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
+      if (potentialNewRank !== prevRank) {
+        newRank = potentialNewRank;
       }
+    }
 
-      const newRankEntry = Object.entries(ranks)
-        .sort(([, a], [, b]) => b.minLevel - a.minLevel)
-        .find(([, details]) => newLevel >= details.minLevel);
-        
-      if (newRankEntry) {
-        const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
-        if (potentialNewRank !== newRank) {
-            newRank = potentialNewRank;
-            toast({
-                title: 'RANK PROMOTION!',
-                description: `You have been promoted to ${newRank} Rank!`,
-            });
-        }
-      }
-
-      return {
-        ...prevPlayer,
-        xp: newXp,
-        level: newLevel,
-        rank: newRank,
-        stats: newStats,
-        streak: prevPlayer.streak + 1, // Simplified streak logic
-      };
+    setPlayer({
+      ...player,
+      xp: finalXp,
+      level: newLevel,
+      rank: newRank,
+      stats: newStats,
+      streak: prevStreak + 1,
     });
+
+    if (leveledUp) {
+      toast({
+        title: 'LEVEL UP!',
+        description: `You have reached Level ${newLevel}!`,
+      });
+    }
+
+    if (newRank !== prevRank) {
+      toast({
+        title: 'RANK PROMOTION!',
+        description: `You have been promoted to ${newRank} Rank!`,
+      });
+    }
   };
 
   return (
-    <>
+    <div className="flex-1 overflow-auto">
       <Header player={player} />
-      <div className="p-4 md:p-6 lg:p-8 overflow-auto">
+      <div className="p-4 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             <QuestBoard quests={quests} onQuestComplete={handleQuestCompletion} />
@@ -114,6 +129,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
