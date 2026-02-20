@@ -71,7 +71,7 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
             }
         }
         getQuote();
-    }, [player]);
+    }, []);
 
     return (
         <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-primary/30 text-center">
