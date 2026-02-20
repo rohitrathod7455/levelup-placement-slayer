@@ -63,7 +63,7 @@ export default function ProfilePage() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader className="items-center text-center">
-              <div className="relative mb-3 group">
+              <div className="relative mb-3">
                 <Avatar className="h-24 w-24 border-2 border-primary glowing-border">
                   <AvatarImage src={avatar} alt="Player Avatar" className="object-cover" />
                   <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
@@ -78,7 +78,7 @@ export default function ProfilePage() {
                  <Button 
                   variant="outline"
                   size="icon"
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
                   onClick={handleAvatarClick}
                 >
                   <Camera className="h-4 w-4" />
