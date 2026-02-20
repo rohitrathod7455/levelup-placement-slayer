@@ -31,23 +31,24 @@ export default function DashboardPage() {
     const questToComplete =
       questType === 'emergency'
         ? quests.emergency
-        : (quests[questType] as Quest[]).find(q => q.id === questId);
+        : quests[questType].find(q => q.id === questId);
 
     if (questToComplete && !questToComplete.completed) {
-      if (questType === 'emergency') {
-        setQuests(prevQuests => ({
-          ...prevQuests,
-          emergency: { ...prevQuests.emergency, completed: true },
-        }));
-      } else {
-        setQuests(prevQuests => ({
-          ...prevQuests,
-          [questType]: (prevQuests[questType] as Quest[]).map(q =>
-            q.id === questId ? { ...q, completed: true } : q
-          ),
-        }));
-      }
-      updatePlayerStats(questToComplete);
+        setQuests(prevQuests => {
+            if (questType === 'emergency') {
+                return {
+                    ...prevQuests,
+                    emergency: { ...prevQuests.emergency, completed: true },
+                };
+            }
+            return {
+                ...prevQuests,
+                [questType]: (prevQuests[questType] as Quest[]).map(q =>
+                    q.id === questId ? { ...q, completed: true } : q
+                ),
+            };
+        });
+        updatePlayerStats(questToComplete);
     }
   };
 
@@ -72,7 +73,10 @@ export default function DashboardPage() {
         });
       }
 
-      const newRankEntry = Object.entries(ranks).find(([, details]) => newLevel >= details.minLevel);
+      const newRankEntry = Object.entries(ranks)
+        .sort(([, a], [, b]) => b.minLevel - a.minLevel)
+        .find(([, details]) => newLevel >= details.minLevel);
+        
       if (newRankEntry) {
         const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
         if (potentialNewRank !== newRank) {
@@ -96,9 +100,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <>
       <Header player={player} />
-      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+      <div className="p-4 md:p-6 lg:p-8 overflow-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             <QuestBoard quests={quests} onQuestComplete={handleQuestCompletion} />
@@ -109,7 +113,7 @@ export default function DashboardPage() {
             <InfoCards player={player} />
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }

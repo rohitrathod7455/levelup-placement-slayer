@@ -95,6 +95,7 @@ const AIInsightsCard = ({ player }: { player: Player }) => {
 
     const getInsights = async () => {
         setLoading(true);
+        setInsights(null);
         try {
             const res = await performanceInsightAndSuggestions({
                 currentStats: player.stats,
@@ -128,9 +129,18 @@ const AIInsightsCard = ({ player }: { player: Player }) => {
         <DialogContent className="max-w-md">
             <DialogHeader>
                 <DialogTitle>Performance Analysis</DialogTitle>
-                <DialogDescription>Readiness Score: <span className="text-primary font-bold">{insights?.placementReadinessScore}%</span></DialogDescription>
+                {insights && !loading && (
+                    <DialogDescription>Readiness Score: <span className="text-primary font-bold">{insights.placementReadinessScore}%</span></DialogDescription>
+                )}
             </DialogHeader>
-            {insights && (
+
+            {loading && (
+                <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+                </div>
+            )}
+
+            {!loading && insights && (
                  <div className="space-y-4 text-sm">
                     <div>
                         <h3 className="font-bold">Summary:</h3>
