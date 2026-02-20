@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { initialPlayerData, ranks, Player } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,20 +11,49 @@ import { StatsRadarChart } from '@/components/dashboard/stats-radar-chart';
 import { Separator } from '@/components/ui/separator';
 import { RankBadge } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import { Pencil } from 'lucide-react';
+import { Pencil, Camera } from 'lucide-react';
 
 export default function ProfilePage() {
   const [player, setPlayer] = useState<Player>(initialPlayerData);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(player.name);
+  
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar')?.imageUrl;
+  const [avatar, setAvatar] = useState<string | undefined>(defaultAvatar);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const playerAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar');
+  // Load avatar from localStorage on component mount
+  useEffect(() => {
+    const storedAvatar = localStorage.getItem('playerAvatar');
+    if (storedAvatar) {
+      setAvatar(storedAvatar);
+    }
+  }, []);
+
   const rankInfo = ranks[player.rank];
 
   const handleSave = () => {
     setPlayer(prevPlayer => ({...prevPlayer, name}));
     setIsEditing(false);
   };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newAvatarUrl = reader.result as string;
+        setAvatar(newAvatarUrl);
+        localStorage.setItem('playerAvatar', newAvatarUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -33,11 +62,26 @@ export default function ProfilePage() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader className="items-center text-center">
-              <div className="relative mb-3">
+              <div className="relative mb-3 group">
                 <Avatar className="h-24 w-24 border-2 border-primary glowing-border">
-                  <AvatarImage src={playerAvatar?.imageUrl} alt="Player Avatar" />
+                  <AvatarImage src={avatar} alt="Player Avatar" />
                   <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                 </Avatar>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                  accept="image/*"
+                />
+                 <Button 
+                  variant="outline"
+                  size="icon"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={handleAvatarClick}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
                 <div className="absolute -bottom-2 -right-2 bg-card p-1 rounded-full border border-primary">
                   <RankBadge rank={player.rank} className={cn('w-8 h-8', rankInfo.color)} />
                 </div>
