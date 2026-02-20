@@ -5,7 +5,7 @@ import { performanceInsightAndSuggestions } from '@/ai/flows/performance-insight
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { achievements, personalBests, Player } from '@/lib/data';
 import { ArrowUp, Flame, Star, Zap } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
 import { ScrollArea } from '../ui/scroll-area';
@@ -53,9 +53,13 @@ const AchievementsCard = () => (
 const FireQuoteCard = ({ player }: { player: Player }) => {
     const [quote, setQuote] = useState({ quote: "The weak beg for results. The strong build them.", author: "The System" });
     const [loading, setLoading] = useState(true);
+    const isFetching = useRef(false);
 
     useEffect(() => {
         async function getQuote() {
+            if (isFetching.current) return;
+            isFetching.current = true;
+
             setLoading(true);
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -65,7 +69,6 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
                     const { date, quote: storedQuote } = JSON.parse(storedQuoteData);
                     if (date === today) {
                         setQuote(storedQuote);
-                        setLoading(false);
                         return;
                     }
                 }
@@ -82,9 +85,10 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
                 setQuote(res);
 
             } catch (e) {
-                console.error("Failed to generate fire quote:", e);
+                // Gracefully fallback to default quote without logging an error
             } finally {
                 setLoading(false);
+                isFetching.current = false;
             }
         }
         getQuote();
