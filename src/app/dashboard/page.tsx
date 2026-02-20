@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   initialPlayerData,
-  mainQuests,
-  sideQuests,
+  mainQuests as defaultMainQuests,
+  sideQuests as defaultSideQuests,
   emergencyQuest,
   levelUpFormula,
   ranks,
@@ -22,14 +22,40 @@ import { Header } from '@/components/dashboard/header';
 export default function DashboardPage() {
   const [player, setPlayer] = useState<Player>(initialPlayerData);
   const [quests, setQuests] = useState({
-    main: mainQuests,
-    side: sideQuests,
+    main: defaultMainQuests,
+    side: defaultSideQuests,
     emergency: emergencyQuest,
   });
   const [weeklyActivity, setWeeklyActivity] = useState(
     initialWeeklyActivityData.map(d => ({ ...d, xp: 0 })),
   );
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadQuests = () => {
+      const storedMain = localStorage.getItem('customMainQuests');
+      const storedSide = localStorage.getItem('customSideQuests');
+
+      const main = storedMain ? JSON.parse(storedMain) : defaultMainQuests;
+      const side = storedSide ? JSON.parse(storedSide) : defaultSideQuests;
+
+      // Reset completion status on load
+      setQuests({
+        main: main.map((q: Quest) => ({ ...q, completed: false })),
+        side: side.map((q: Quest) => ({ ...q, completed: false })),
+        emergency: { ...emergencyQuest, completed: false },
+      });
+    };
+
+    loadQuests(); // Load on initial mount
+
+    window.addEventListener('questsChanged', loadQuests); // Listen for changes
+
+    return () => {
+      window.removeEventListener('questsChanged', loadQuests);
+    };
+  }, []);
+
 
   const handleQuestCompletion = (questId: string, questType: keyof typeof quests) => {
     const questToComplete =
@@ -53,50 +79,66 @@ export default function DashboardPage() {
         };
       });
 
-      const {
-        xp: prevXp,
-        level: prevLevel,
-        rank: prevRank,
-        stats: prevStats,
-        streak: prevStreak,
-      } = player;
+      setPlayer(prevPlayer => {
+          const {
+            xp: prevXp,
+            level: prevLevel,
+            rank: prevRank,
+            stats: prevStats,
+            streak: prevStreak,
+          } = prevPlayer;
+    
+          const newXp = prevXp + questToComplete.xp;
+          const newStats = {
+            ...prevStats,
+            [questToComplete.stat]: prevStats[questToComplete.stat] + 1,
+          };
+    
+          let newLevel = prevLevel;
+          let finalXp = newXp;
+          let leveledUp = false;
+    
+          const xpForNextLevel = levelUpFormula(prevLevel);
+          if (finalXp >= xpForNextLevel) {
+            newLevel += 1;
+            finalXp -= xpForNextLevel;
+            leveledUp = true;
+          }
+    
+          const newRankEntry = Object.entries(ranks)
+            .sort(([, a], [, b]) => b.minLevel - a.minLevel)
+            .find(([, details]) => newLevel >= details.minLevel);
+          
+          let newRank = prevRank;
+          if (newRankEntry) {
+            const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
+            if (ranks[potentialNewRank].minLevel > ranks[prevRank].minLevel) {
+              newRank = potentialNewRank;
+            }
+          }
 
-      const newXp = prevXp + questToComplete.xp;
-      const newStats = {
-        ...prevStats,
-        [questToComplete.stat]: prevStats[questToComplete.stat] + 1,
-      };
-
-      let newLevel = prevLevel;
-      let finalXp = newXp;
-      let leveledUp = false;
-
-      const xpForNextLevel = levelUpFormula(prevLevel);
-      if (finalXp >= xpForNextLevel) {
-        newLevel += 1;
-        finalXp -= xpForNextLevel;
-        leveledUp = true;
-      }
-
-      const newRankEntry = Object.entries(ranks)
-        .sort(([, a], [, b]) => b.minLevel - a.minLevel)
-        .find(([, details]) => newLevel >= details.minLevel);
-      
-      let newRank = prevRank;
-      if (newRankEntry) {
-        const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
-        if (potentialNewRank !== prevRank) {
-          newRank = potentialNewRank;
-        }
-      }
-
-      setPlayer({
-        ...player,
-        xp: finalXp,
-        level: newLevel,
-        rank: newRank,
-        stats: newStats,
-        streak: prevStreak + 1,
+          if (leveledUp) {
+            toast({
+              title: 'LEVEL UP!',
+              description: `You have reached Level ${newLevel}!`,
+            });
+          }
+    
+          if (newRank !== prevRank) {
+            toast({
+              title: 'RANK PROMOTION!',
+              description: `You have been promoted to ${newRank} Rank!`,
+            });
+          }
+    
+          return {
+            ...prevPlayer,
+            xp: finalXp,
+            level: newLevel,
+            rank: newRank,
+            stats: newStats,
+            streak: prevStreak + 1,
+          };
       });
       
       setWeeklyActivity(currentActivity => {
@@ -109,20 +151,6 @@ export default function DashboardPage() {
         };
         return newActivity;
       });
-
-      if (leveledUp) {
-        toast({
-          title: 'LEVEL UP!',
-          description: `You have reached Level ${newLevel}!`,
-        });
-      }
-
-      if (newRank !== prevRank) {
-        toast({
-          title: 'RANK PROMOTION!',
-          description: `You have been promoted to ${newRank} Rank!`,
-        });
-      }
     }
   };
 

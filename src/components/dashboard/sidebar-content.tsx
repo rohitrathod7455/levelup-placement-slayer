@@ -113,9 +113,11 @@ export function SidebarContent() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Settings">
-              <Settings />
-              Settings
+            <SidebarMenuButton asChild tooltip="Settings" isActive={pathname === '/dashboard/settings'}>
+              <Link href="/dashboard/settings">
+                <Settings />
+                Settings
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
