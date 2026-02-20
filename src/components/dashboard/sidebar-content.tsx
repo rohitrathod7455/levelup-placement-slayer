@@ -13,6 +13,8 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ranks, type Rank } from '@/lib/data';
 import { RankBadge } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const PlayerCard = () => {
   const playerAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar');
@@ -41,6 +43,7 @@ const PlayerCard = () => {
 };
 
 export function SidebarContent() {
+  const pathname = usePathname();
   return (
     <div className="flex flex-col h-full">
       <SidebarHeader>
@@ -50,27 +53,35 @@ export function SidebarContent() {
       <div className="flex-1 overflow-y-auto">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Dashboard" isActive>
-              <LayoutDashboard />
-              Dashboard
+            <SidebarMenuButton asChild tooltip="Dashboard" isActive={pathname === '/dashboard'}>
+              <Link href="/dashboard">
+                <LayoutDashboard />
+                Dashboard
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Profile">
-              <User />
-              Profile
+            <SidebarMenuButton asChild tooltip="Profile" isActive={pathname === '/dashboard/profile'}>
+              <Link href="/dashboard/profile">
+                <User />
+                Profile
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Streaks">
-              <Flame />
-              Streaks
+            <SidebarMenuButton asChild tooltip="Streaks" isActive={pathname === '/dashboard/streaks'}>
+              <Link href="/dashboard/streaks">
+                <Flame />
+                Streaks
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Achievements">
-              <Star />
-              Achievements
+            <SidebarMenuButton asChild tooltip="Achievements" isActive={pathname === '/dashboard/achievements'}>
+              <Link href="/dashboard/achievements">
+                <Star />
+                Achievements
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

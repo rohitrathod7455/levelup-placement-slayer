@@ -71,7 +71,7 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
             }
         }
         getQuote();
-    }, []);
+    }, [player.name, player.level, player.rank, player.streak]);
 
     return (
         <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-primary/30 text-center">
@@ -126,8 +126,8 @@ const AIInsightsCard = ({ player }: { player: Player }) => {
                 </DialogTrigger>
             </CardFooter>
         </Card>
-        <DialogContent className="max-w-md">
-            <DialogHeader>
+        <DialogContent className="max-w-md flex flex-col max-h-[90vh]">
+            <DialogHeader className='p-6 pb-2'>
                 <DialogTitle>Performance Analysis</DialogTitle>
                 {insights && !loading && (
                     <DialogDescription>Readiness Score: <span className="text-primary font-bold">{insights.placementReadinessScore}%</span></DialogDescription>
@@ -141,24 +141,26 @@ const AIInsightsCard = ({ player }: { player: Player }) => {
             )}
 
             {!loading && insights && (
-                 <div className="space-y-4 text-sm">
-                    <div>
-                        <h3 className="font-bold">Summary:</h3>
-                        <p className="text-muted-foreground">{insights.analysisSummary}</p>
+                <div className='overflow-y-auto px-6 pb-6'>
+                    <div className="space-y-4 text-sm">
+                        <div>
+                            <h3 className="font-bold">Summary:</h3>
+                            <p className="text-muted-foreground">{insights.analysisSummary}</p>
+                        </div>
+                        <div>
+                            <h3 className="font-bold">Focus Areas:</h3>
+                            <ul className="list-disc list-inside text-muted-foreground">
+                                {insights.focusAreas.map((area:string) => <li key={area}>{area}</li>)}
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="font-bold">Recovery Missions:</h3>
+                            <ul className="list-disc list-inside text-muted-foreground">
+                                {insights.suggestedRecoveryMissions.map((mission:string) => <li key={mission}>{mission}</li>)}
+                            </ul>
+                        </div>
                     </div>
-                     <div>
-                        <h3 className="font-bold">Focus Areas:</h3>
-                        <ul className="list-disc list-inside text-muted-foreground">
-                            {insights.focusAreas.map((area:string) => <li key={area}>{area}</li>)}
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 className="font-bold">Recovery Missions:</h3>
-                        <ul className="list-disc list-inside text-muted-foreground">
-                            {insights.suggestedRecoveryMissions.map((mission:string) => <li key={mission}>{mission}</li>)}
-                        </ul>
-                    </div>
-                 </div>
+                </div>
             )}
         </DialogContent>
       </Dialog>
