@@ -15,22 +15,45 @@ import { RankBadge } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const PlayerCard = () => {
-  const playerAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar');
+  const defaultAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar')?.imageUrl || '';
+  const [avatar, setAvatar] = useState(defaultAvatar);
   const rank: Rank = 'E'; // Example rank
   const rankInfo = ranks[rank];
+
+  useEffect(() => {
+    const updateAvatar = () => {
+      const storedAvatar = localStorage.getItem('playerAvatar');
+      if (storedAvatar) {
+        setAvatar(storedAvatar);
+      } else {
+        setAvatar(defaultAvatar);
+      }
+    };
+
+    updateAvatar();
+
+    window.addEventListener('storage', updateAvatar);
+    window.addEventListener('avatarChanged', updateAvatar);
+
+    return () => {
+      window.removeEventListener('storage', updateAvatar);
+      window.removeEventListener('avatarChanged', updateAvatar);
+    };
+  }, [defaultAvatar]);
 
   return (
     <div className="flex flex-col items-center p-4 text-center">
       <div className="relative mb-3">
         <Image
-          src={playerAvatar?.imageUrl || ''}
+          src={avatar}
           alt="Player Avatar"
           width={80}
           height={80}
-          className="rounded-full border-2 border-primary glowing-border"
-          data-ai-hint={playerAvatar?.imageHint}
+          className="rounded-full border-2 border-primary glowing-border object-cover"
+          data-ai-hint="profile avatar"
         />
         <div className="absolute -bottom-2 -right-2 bg-card p-1 rounded-full border border-primary">
            <RankBadge rank={rank} className={cn('w-6 h-6', rankInfo.color)} />

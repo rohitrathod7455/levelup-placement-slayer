@@ -45,6 +45,7 @@ export default function ProfilePage() {
         const newAvatarUrl = reader.result as string;
         setAvatar(newAvatarUrl);
         localStorage.setItem('playerAvatar', newAvatarUrl);
+        window.dispatchEvent(new Event('avatarChanged'));
       };
       reader.readAsDataURL(file);
     }
@@ -64,7 +65,7 @@ export default function ProfilePage() {
             <CardHeader className="items-center text-center">
               <div className="relative mb-3 group">
                 <Avatar className="h-24 w-24 border-2 border-primary glowing-border">
-                  <AvatarImage src={avatar} alt="Player Avatar" />
+                  <AvatarImage src={avatar} alt="Player Avatar" className="object-cover" />
                   <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <input
