@@ -56,7 +56,20 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
 
     useEffect(() => {
         async function getQuote() {
+            setLoading(true);
             try {
+                const today = new Date().toISOString().split('T')[0];
+                const storedQuoteData = localStorage.getItem('dailyFireQuote');
+
+                if (storedQuoteData) {
+                    const { date, quote: storedQuote } = JSON.parse(storedQuoteData);
+                    if (date === today) {
+                        setQuote(storedQuote);
+                        setLoading(false);
+                        return;
+                    }
+                }
+                
                 const res = await dailyPersonalizedFireQuote({
                     playerName: player.name,
                     level: player.level,
@@ -64,7 +77,10 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
                     xpGainedToday: 150, // Mock data
                     currentStreakDays: player.streak,
                 });
+
+                localStorage.setItem('dailyFireQuote', JSON.stringify({ date: today, quote: res }));
                 setQuote(res);
+
             } catch (e) {
                 console.error("Failed to generate fire quote:", e);
             } finally {
