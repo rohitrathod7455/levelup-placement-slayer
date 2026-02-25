@@ -17,18 +17,33 @@ export default function ProfilePage() {
   const [player, setPlayer] = useState<Player>(initialPlayerData);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(player.name);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   const defaultAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar')?.imageUrl;
   const [avatar, setAvatar] = useState<string | undefined>(defaultAvatar);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load avatar from localStorage on component mount
   useEffect(() => {
+    const savedPlayer = localStorage.getItem('playerData');
+    if (savedPlayer) {
+      const parsedPlayer = JSON.parse(savedPlayer);
+      setPlayer(parsedPlayer);
+      setName(parsedPlayer.name);
+    }
+
     const storedAvatar = localStorage.getItem('playerAvatar');
     if (storedAvatar) {
       setAvatar(storedAvatar);
     }
+    setIsLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if(isLoaded) {
+      localStorage.setItem('playerData', JSON.stringify(player));
+      window.dispatchEvent(new Event('playerDataChanged'));
+    }
+  }, [player, isLoaded]);
 
   const rankInfo = ranks[player.rank];
 
@@ -55,6 +70,9 @@ export default function ProfilePage() {
     fileInputRef.current?.click();
   };
 
+  if (!isLoaded) {
+    return <div className="p-4 md:p-6 lg:p-8"><p>Loading profile...</p></div>;
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">

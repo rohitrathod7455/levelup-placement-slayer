@@ -1,12 +1,32 @@
 'use client';
+import { useState, useEffect } from "react";
 import { ActivityCharts } from "@/components/dashboard/activity-charts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { initialPlayerData, personalBests } from "@/lib/data";
+import { initialPlayerData, weeklyActivity as initialWeeklyActivityData, Player } from "@/lib/data";
 import { Flame } from "lucide-react";
 
 export default function StreaksPage() {
-  const currentStreak = initialPlayerData.streak;
-  const longestStreak = personalBests.find(b => b.title === 'Longest Streak')?.value || '0 days';
+  const [player, setPlayer] = useState<Player>(initialPlayerData);
+  const [weeklyActivity, setWeeklyActivity] = useState(initialWeeklyActivityData);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const savedPlayer = localStorage.getItem('playerData');
+    if (savedPlayer) {
+      setPlayer(JSON.parse(savedPlayer));
+    }
+    const savedActivity = localStorage.getItem('weeklyActivityData');
+    if (savedActivity) {
+      setWeeklyActivity(JSON.parse(savedActivity));
+    }
+    setIsLoaded(true);
+  }, []);
+
+  const longestStreak = player.personalBests.find(b => b.title === 'Longest Streak')?.value || '0';
+
+  if (!isLoaded) {
+    return <div className="p-4 md:p-6 lg:p-8"><p>Loading streaks...</p></div>;
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -20,7 +40,7 @@ export default function StreaksPage() {
             <CardContent>
               <div className="flex items-center justify-center gap-4">
                 <Flame className="h-16 w-16 text-orange-400 animate-fire-flicker" />
-                <span className="text-7xl font-bold font-headline text-orange-300 glowing-text-primary">{currentStreak}</span>
+                <span className="text-7xl font-bold font-headline text-orange-300 glowing-text-primary">{player.streak}</span>
               </div>
               <p className="text-muted-foreground mt-2">days</p>
             </CardContent>
@@ -33,13 +53,13 @@ export default function StreaksPage() {
               <CardDescription>Your personal best for consistency.</CardDescription>
             </CardHeader>
             <CardContent className="text-center flex flex-col items-center justify-center h-full pb-6">
-                 <span className="text-6xl font-bold font-headline text-primary glowing-text-primary">{longestStreak.split(' ')[0]}</span>
+                 <span className="text-6xl font-bold font-headline text-primary glowing-text-primary">{longestStreak}</span>
                  <p className="text-muted-foreground">days</p>
             </CardContent>
           </Card>
         </div>
       </div>
-       <ActivityCharts />
+       <ActivityCharts weeklyActivityData={weeklyActivity} />
     </div>
   );
 }

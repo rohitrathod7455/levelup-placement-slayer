@@ -21,6 +21,12 @@ export interface Stats {
 
 export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'SS' | 'Monarch';
 
+export interface PersonalBest {
+  title: string;
+  value: string;
+  icon: string;
+}
+
 export interface Player {
   name: string;
   title: string;
@@ -29,6 +35,7 @@ export interface Player {
   rank: Rank;
   stats: Stats;
   streak: number;
+  personalBests: PersonalBest[];
 }
 
 export const levelUpFormula = (level: number) => 100 * level;
@@ -50,7 +57,7 @@ export const initialPlayerData: Player = {
   level: 1,
   xp: 0,
   rank: 'E',
-  streak: 7,
+  streak: 0,
   stats: {
     discipline: 10,
     intelligence: 10,
@@ -58,6 +65,11 @@ export const initialPlayerData: Player = {
     consistency: 10,
     focus: 10,
   },
+  personalBests: [
+    { title: 'Highest Level Achieved', value: '1', icon: 'ArrowUp' },
+    { title: 'Longest Streak', value: '0', icon: 'Flame' },
+    { title: 'Total XP Earned', value: '0', icon: 'Star' },
+  ]
 };
 
 export interface Quest {
@@ -96,18 +108,12 @@ export const achievements = [
     { id: 'ach4', title: 'Placement Slayer', description: '60-day streak', icon: '👑', unlocked: false },
 ]
 
-export const personalBests = [
-    { title: 'Highest Level Achieved', value: '1', icon: 'ArrowUp' },
-    { title: 'Longest Streak', value: '7 days', icon: 'Flame' },
-    { title: 'Total XP Earned', value: '0', icon: 'Star' },
-]
-
 export const weeklyActivity = [
-    { day: 'Mon', xp: 30 },
-    { day: 'Tue', xp: 75 },
-    { day: 'Wed', xp: 40 },
-    { day: 'Thu', xp: 90 },
-    { day: 'Fri', xp: 60 },
-    { day: 'Sat', xp: 120 },
-    { day: 'Sun', xp: 20 },
+    { day: 'Mon', xp: 0 },
+    { day: 'Tue', xp: 0 },
+    { day: 'Wed', xp: 0 },
+    { day: 'Thu', xp: 0 },
+    { day: 'Fri', xp: 0 },
+    { day: 'Sat', xp: 0 },
+    { day: 'Sun', xp: 0 },
 ]

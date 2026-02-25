@@ -11,6 +11,7 @@ import {
   Player,
   Quest,
   weeklyActivity as initialWeeklyActivityData,
+  PersonalBest,
 } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { QuestBoard } from '@/components/dashboard/quest-board';
@@ -26,12 +27,21 @@ export default function DashboardPage() {
     side: defaultSideQuests,
     emergency: emergencyQuest,
   });
-  const [weeklyActivity, setWeeklyActivity] = useState(
-    initialWeeklyActivityData.map(d => ({ ...d, xp: 0 })),
-  );
+  const [weeklyActivity, setWeeklyActivity] = useState(initialWeeklyActivityData);
   const { toast } = useToast();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const savedPlayer = localStorage.getItem('playerData');
+    if (savedPlayer) {
+      setPlayer(JSON.parse(savedPlayer));
+    }
+
+    const savedActivity = localStorage.getItem('weeklyActivityData');
+    if (savedActivity) {
+      setWeeklyActivity(JSON.parse(savedActivity));
+    }
+
     const loadQuests = () => {
       const storedMain = localStorage.getItem('customMainQuests');
       const storedSide = localStorage.getItem('customSideQuests');
@@ -47,15 +57,26 @@ export default function DashboardPage() {
       });
     };
 
-    loadQuests(); // Load on initial mount
+    loadQuests();
+    setIsLoaded(true);
 
-    window.addEventListener('questsChanged', loadQuests); // Listen for changes
-
+    window.addEventListener('questsChanged', loadQuests);
     return () => {
       window.removeEventListener('questsChanged', loadQuests);
     };
   }, []);
 
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('playerData', JSON.stringify(player));
+    }
+  }, [player, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('weeklyActivityData', JSON.stringify(weeklyActivity));
+    }
+  }, [weeklyActivity, isLoaded]);
 
   const handleQuestCompletion = (questId: string, questType: keyof typeof quests) => {
     const questToComplete =
@@ -86,6 +107,7 @@ export default function DashboardPage() {
             rank: prevRank,
             stats: prevStats,
             streak: prevStreak,
+            personalBests: prevBests,
           } = prevPlayer;
     
           const newXp = prevXp + questToComplete.xp;
@@ -130,6 +152,25 @@ export default function DashboardPage() {
               description: `You have been promoted to ${newRank} Rank!`,
             });
           }
+
+          // Update Personal Bests
+          const newStreak = prevStreak + 1;
+          const newBests: PersonalBest[] = JSON.parse(JSON.stringify(prevBests));
+
+          const highestLevelBest = newBests.find(b => b.title === 'Highest Level Achieved');
+          if (highestLevelBest && newLevel > parseInt(highestLevelBest.value)) {
+            highestLevelBest.value = newLevel.toString();
+          }
+
+          const longestStreakBest = newBests.find(b => b.title === 'Longest Streak');
+          if (longestStreakBest && newStreak > parseInt(longestStreakBest.value)) {
+            longestStreakBest.value = `${newStreak}`;
+          }
+
+          const totalXpBest = newBests.find(b => b.title === 'Total XP Earned');
+          if (totalXpBest) {
+            totalXpBest.value = (parseInt(totalXpBest.value) + questToComplete.xp).toString();
+          }
     
           return {
             ...prevPlayer,
@@ -137,7 +178,8 @@ export default function DashboardPage() {
             level: newLevel,
             rank: newRank,
             stats: newStats,
-            streak: prevStreak + 1,
+            streak: newStreak,
+            personalBests: newBests,
           };
       });
       
@@ -153,6 +195,10 @@ export default function DashboardPage() {
       });
     }
   };
+
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-screen"><p>Loading player data...</p></div>;
+  }
 
   return (
     <div className="flex-1 overflow-auto">

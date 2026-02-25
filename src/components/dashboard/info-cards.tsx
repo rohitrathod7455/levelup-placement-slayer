@@ -3,7 +3,7 @@
 import { dailyPersonalizedFireQuote } from '@/ai/flows/daily-personalized-fire-quote';
 import { performanceInsightAndSuggestions } from '@/ai/flows/performance-insight-and-suggestions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { achievements, personalBests, Player } from '@/lib/data';
+import { achievements, Player, PersonalBest } from '@/lib/data';
 import { ArrowUp, Flame, Star, Zap } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '../ui/button';
@@ -12,13 +12,13 @@ import { ScrollArea } from '../ui/scroll-area';
 
 const iconMap: { [key: string]: React.ElementType } = { ArrowUp, Flame, Star };
 
-const PersonalBestsCard = () => (
+const PersonalBestsCard = ({ bests }: { bests: PersonalBest[] }) => (
   <Card className="bg-card/50 border-border/50">
     <CardHeader>
       <CardTitle className="font-headline text-xl">Personal Bests</CardTitle>
     </CardHeader>
     <CardContent className="space-y-3">
-      {personalBests.map(best => {
+      {bests.map(best => {
         const Icon = iconMap[best.icon];
         return (
           <div key={best.title} className="flex justify-between items-center text-sm">
@@ -26,7 +26,7 @@ const PersonalBestsCard = () => (
               <Icon className="w-4 h-4" />
               <span>{best.title}</span>
             </div>
-            <span className="font-bold text-foreground">{best.value}</span>
+            <span className="font-bold text-foreground">{best.title === 'Longest Streak' ? `${best.value} days` : best.value}</span>
           </div>
         );
       })}
@@ -53,13 +53,13 @@ const AchievementsCard = () => (
 const FireQuoteCard = ({ player }: { player: Player }) => {
     const [quote, setQuote] = useState({ quote: "The weak beg for results. The strong build them.", author: "The System" });
     const [loading, setLoading] = useState(true);
-    const isFetching = useRef(false);
+    const hasFetched = useRef(false);
 
     useEffect(() => {
-        async function getQuote() {
-            if (isFetching.current) return;
-            isFetching.current = true;
+        if (hasFetched.current) return;
+        hasFetched.current = true;
 
+        async function getQuote() {
             setLoading(true);
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -88,11 +88,10 @@ const FireQuoteCard = ({ player }: { player: Player }) => {
                 // Gracefully fallback to default quote without logging an error
             } finally {
                 setLoading(false);
-                isFetching.current = false;
             }
         }
         getQuote();
-    }, []);
+    }, [player]);
 
     return (
         <Card className="bg-gradient-to-br from-primary/20 to-accent/20 border-primary/30 text-center">
@@ -193,7 +192,7 @@ export const InfoCards = ({ player }: { player: Player }) => {
     <div className="space-y-6">
       <FireQuoteCard player={player}/>
       <AIInsightsCard player={player} />
-      <PersonalBestsCard />
+      <PersonalBestsCard bests={player.personalBests} />
       <AchievementsCard />
     </div>
   );
