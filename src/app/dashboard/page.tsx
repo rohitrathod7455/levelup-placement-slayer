@@ -122,100 +122,98 @@ export default function DashboardPage() {
           [questId]: todayStr,
       }));
 
-      setPlayer(prevPlayer => {
-          const {
-            xp: prevXp,
-            level: prevLevel,
-            rank: prevRank,
-            stats: prevStats,
-            streak: prevStreak,
-            personalBests: prevBests,
-            lastCompletionDate: prevLastCompletionDate,
-          } = prevPlayer;
-    
-          const newXp = prevXp + questToComplete.xp;
-          const newStats = {
-            ...prevStats,
-            [questToComplete.stat]: prevStats[questToComplete.stat] + 1,
-          };
-    
-          let newLevel = prevLevel;
-          let finalXp = newXp;
-          let leveledUp = false;
-    
-          const xpForNextLevel = levelUpFormula(prevLevel);
-          if (finalXp >= xpForNextLevel) {
-            newLevel += 1;
-            finalXp -= xpForNextLevel;
-            leveledUp = true;
-          }
-    
-          const newRankEntry = Object.entries(ranks)
-            .sort(([, a], [, b]) => b.minLevel - a.minLevel)
-            .find(([, details]) => newLevel >= details.minLevel);
-          
-          let newRank = prevRank;
-          if (newRankEntry) {
-            const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
-            if (ranks[potentialNewRank].minLevel > ranks[prevRank].minLevel) {
-              newRank = potentialNewRank;
-            }
-          }
+      const {
+        xp: prevXp,
+        level: prevLevel,
+        rank: prevRank,
+        stats: prevStats,
+        streak: prevStreak,
+        personalBests: prevBests,
+        lastCompletionDate: prevLastCompletionDate,
+      } = player;
 
-          if (leveledUp) {
-            toast({
-              title: 'LEVEL UP!',
-              description: `You have reached Level ${newLevel}!`,
-            });
-          }
-    
-          if (newRank !== prevRank) {
-            toast({
-              title: 'RANK PROMOTION!',
-              description: `You have been promoted to ${newRank} Rank!`,
-            });
-          }
+      const newXp = prevXp + questToComplete.xp;
+      const newStats = {
+        ...prevStats,
+        [questToComplete.stat]: prevStats[questToComplete.stat] + 1,
+      };
 
-          const today = new Date();
-          const lastDate = prevLastCompletionDate ? new Date(prevLastCompletionDate) : null;
-          let newStreak = prevStreak;
+      let newLevel = prevLevel;
+      let finalXp = newXp;
+      let leveledUp = false;
 
-          if (!lastDate || !isSameDay(today, lastDate)) {
-            if (lastDate && isSameDay(subDays(today, 1), lastDate)) {
-              newStreak += 1;
-            } else {
-              newStreak = 1;
-            }
-          }
-          const newLastCompletionDate = today.toISOString().split('T')[0];
-          
-          const newBests: PersonalBest[] = JSON.parse(JSON.stringify(prevBests));
+      const xpForNextLevel = levelUpFormula(prevLevel);
+      if (finalXp >= xpForNextLevel) {
+        newLevel += 1;
+        finalXp -= xpForNextLevel;
+        leveledUp = true;
+      }
 
-          const highestLevelBest = newBests.find(b => b.title === 'Highest Level Achieved');
-          if (highestLevelBest && newLevel > parseInt(highestLevelBest.value)) {
-            highestLevelBest.value = newLevel.toString();
-          }
+      const newRankEntry = Object.entries(ranks)
+        .sort(([, a], [, b]) => b.minLevel - a.minLevel)
+        .find(([, details]) => newLevel >= details.minLevel);
+      
+      let newRank = prevRank;
+      if (newRankEntry) {
+        const potentialNewRank = newRankEntry[0] as keyof typeof ranks;
+        if (ranks[potentialNewRank].minLevel > ranks[prevRank].minLevel) {
+          newRank = potentialNewRank;
+        }
+      }
 
-          const longestStreakBest = newBests.find(b => b.title === 'Longest Streak');
-          if (longestStreakBest && newStreak > parseInt(longestStreakBest.value)) {
-            longestStreakBest.value = `${newStreak}`;
-          }
+      if (leveledUp) {
+        toast({
+          title: 'LEVEL UP!',
+          description: `You have reached Level ${newLevel}!`,
+        });
+      }
 
-          const totalXpBest = newBests.find(b => b.title === 'Total XP Earned');
-          if (totalXpBest) {
-            totalXpBest.value = (parseInt(totalXpBest.value) + questToComplete.xp).toString();
-          }
-    
-          return {
-            ...prevPlayer,
-            xp: finalXp,
-            level: newLevel,
-            rank: newRank,
-            stats: newStats,
-            streak: newStreak,
-            lastCompletionDate: newLastCompletionDate,
-            personalBests: newBests,
-          };
+      if (newRank !== prevRank) {
+        toast({
+          title: 'RANK PROMOTION!',
+          description: `You have been promoted to ${newRank} Rank!`,
+        });
+      }
+
+      const today = new Date();
+      const lastDate = prevLastCompletionDate ? new Date(prevLastCompletionDate) : null;
+      let newStreak = prevStreak;
+
+      if (!lastDate || !isSameDay(today, lastDate)) {
+        if (lastDate && isSameDay(subDays(today, 1), lastDate)) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
+        }
+      }
+      const newLastCompletionDate = today.toISOString().split('T')[0];
+      
+      const newBests: PersonalBest[] = JSON.parse(JSON.stringify(prevBests));
+
+      const highestLevelBest = newBests.find(b => b.title === 'Highest Level Achieved');
+      if (highestLevelBest && newLevel > parseInt(highestLevelBest.value)) {
+        highestLevelBest.value = newLevel.toString();
+      }
+
+      const longestStreakBest = newBests.find(b => b.title === 'Longest Streak');
+      if (longestStreakBest && newStreak > parseInt(longestStreakBest.value)) {
+        longestStreakBest.value = `${newStreak}`;
+      }
+
+      const totalXpBest = newBests.find(b => b.title === 'Total XP Earned');
+      if (totalXpBest) {
+        totalXpBest.value = (parseInt(totalXpBest.value) + questToComplete.xp).toString();
+      }
+
+      setPlayer({
+        ...player,
+        xp: finalXp,
+        level: newLevel,
+        rank: newRank,
+        stats: newStats,
+        streak: newStreak,
+        lastCompletionDate: newLastCompletionDate,
+        personalBests: newBests,
       });
       
       setWeeklyActivity(currentActivity => {
