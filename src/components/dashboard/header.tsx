@@ -1,3 +1,5 @@
+'use client';
+
 import { Progress } from '@/components/ui/progress';
 import { Player, levelUpFormula, ranks } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -27,14 +29,17 @@ export const Header = ({ player }: { player: Player }) => {
   const isShadowMode = player.streak >= 7;
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+      <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
         <div className="hidden md:flex items-center gap-2">
             <h1 className="text-2xl font-bold font-headline tracking-tighter">LevelUp</h1>
             <span className={cn("text-2xl font-bold", rankInfo.color)}>[{player.rank}]</span>
         </div>
-      <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <div className="ml-auto flex-1 sm:flex-initial">
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="w-32 sm:w-48 md:w-56">
           <XPProgress player={player} />
         </div>
         <div className="flex items-center gap-2 font-bold text-orange-400">
