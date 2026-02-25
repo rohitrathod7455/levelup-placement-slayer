@@ -2,6 +2,7 @@ import { Progress } from '@/components/ui/progress';
 import { Player, levelUpFormula, ranks } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Flame } from 'lucide-react';
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const XPProgress = ({ player }: { player: Player }) => {
   const xpForNextLevel = levelUpFormula(player.level);
@@ -27,7 +28,8 @@ export const Header = ({ player }: { player: Player }) => {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-        <div className="flex items-center gap-2">
+        <SidebarTrigger className="md:hidden" />
+        <div className="hidden md:flex items-center gap-2">
             <h1 className="text-2xl font-bold font-headline tracking-tighter">LevelUp</h1>
             <span className={cn("text-2xl font-bold", rankInfo.color)}>[{player.rank}]</span>
         </div>
