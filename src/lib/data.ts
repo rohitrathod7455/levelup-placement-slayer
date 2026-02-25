@@ -36,6 +36,7 @@ export interface Player {
   stats: Stats;
   streak: number;
   personalBests: PersonalBest[];
+  lastCompletionDate: string;
 }
 
 export const levelUpFormula = (level: number) => 100 * level;
@@ -69,7 +70,8 @@ export const initialPlayerData: Player = {
     { title: 'Highest Level Achieved', value: '1', icon: 'ArrowUp' },
     { title: 'Longest Streak', value: '0', icon: 'Flame' },
     { title: 'Total XP Earned', value: '0', icon: 'Star' },
-  ]
+  ],
+  lastCompletionDate: '',
 };
 
 export interface Quest {

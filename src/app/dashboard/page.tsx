@@ -19,6 +19,7 @@ import { StatsRadarChart } from '@/components/dashboard/stats-radar-chart';
 import { ActivityCharts } from '@/components/dashboard/activity-charts';
 import { InfoCards } from '@/components/dashboard/info-cards';
 import { Header } from '@/components/dashboard/header';
+import { isSameDay, subDays } from 'date-fns';
 
 export default function DashboardPage() {
   const [player, setPlayer] = useState<Player>(initialPlayerData);
@@ -108,6 +109,7 @@ export default function DashboardPage() {
             stats: prevStats,
             streak: prevStreak,
             personalBests: prevBests,
+            lastCompletionDate: prevLastCompletionDate,
           } = prevPlayer;
     
           const newXp = prevXp + questToComplete.xp;
@@ -153,8 +155,22 @@ export default function DashboardPage() {
             });
           }
 
+          // --- New Streak Logic ---
+          const today = new Date();
+          const lastDate = prevLastCompletionDate ? new Date(prevLastCompletionDate) : null;
+          let newStreak = prevStreak;
+
+          if (!lastDate || !isSameDay(today, lastDate)) {
+            // It's a new day of activity
+            if (lastDate && isSameDay(subDays(today, 1), lastDate)) {
+              newStreak += 1; // It was yesterday, so we continue the streak
+            } else {
+              newStreak = 1; // It wasn't yesterday, so reset streak to 1
+            }
+          }
+          const newLastCompletionDate = today.toISOString().split('T')[0];
+          
           // Update Personal Bests
-          const newStreak = prevStreak + 1;
           const newBests: PersonalBest[] = JSON.parse(JSON.stringify(prevBests));
 
           const highestLevelBest = newBests.find(b => b.title === 'Highest Level Achieved');
@@ -179,6 +195,7 @@ export default function DashboardPage() {
             rank: newRank,
             stats: newStats,
             streak: newStreak,
+            lastCompletionDate: newLastCompletionDate,
             personalBests: newBests,
           };
       });
