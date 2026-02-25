@@ -29,41 +29,49 @@ export default function DashboardPage() {
     emergency: emergencyQuest,
   });
   const [weeklyActivity, setWeeklyActivity] = useState(initialWeeklyActivityData);
+  const [questCompletions, setQuestCompletions] = useState<{ [key: string]: string }>({});
   const { toast } = useToast();
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const savedPlayer = localStorage.getItem('playerData');
-    if (savedPlayer) {
-      setPlayer(JSON.parse(savedPlayer));
-    }
+    const loadInitialData = () => {
+      const savedPlayer = localStorage.getItem('playerData');
+      if (savedPlayer) setPlayer(JSON.parse(savedPlayer));
 
-    const savedActivity = localStorage.getItem('weeklyActivityData');
-    if (savedActivity) {
-      setWeeklyActivity(JSON.parse(savedActivity));
-    }
+      const savedActivity = localStorage.getItem('weeklyActivityData');
+      if (savedActivity) setWeeklyActivity(JSON.parse(savedActivity));
+      
+      const savedCompletionsJSON = localStorage.getItem('questCompletionData');
+      const completions = savedCompletionsJSON ? JSON.parse(savedCompletionsJSON) : {};
+      setQuestCompletions(completions);
 
-    const loadQuests = () => {
       const storedMain = localStorage.getItem('customMainQuests');
       const storedSide = localStorage.getItem('customSideQuests');
-
+      
       const main = storedMain ? JSON.parse(storedMain) : defaultMainQuests;
       const side = storedSide ? JSON.parse(storedSide) : defaultSideQuests;
-
-      // Reset completion status on load
-      setQuests({
-        main: main.map((q: Quest) => ({ ...q, completed: false })),
-        side: side.map((q: Quest) => ({ ...q, completed: false })),
-        emergency: { ...emergencyQuest, completed: false },
+      
+      const todayStr = new Date().toISOString().split('T')[0];
+      
+      const checkCompletion = (quest: Quest) => ({
+          ...quest,
+          completed: completions[quest.id] === todayStr,
       });
+
+      setQuests({
+          main: main.map(checkCompletion),
+          side: side.map(checkCompletion),
+          emergency: checkCompletion(emergencyQuest),
+      });
+
+      setIsLoaded(true);
     };
 
-    loadQuests();
-    setIsLoaded(true);
-
-    window.addEventListener('questsChanged', loadQuests);
+    loadInitialData();
+    
+    window.addEventListener('questsChanged', loadInitialData);
     return () => {
-      window.removeEventListener('questsChanged', loadQuests);
+      window.removeEventListener('questsChanged', loadInitialData);
     };
   }, []);
 
@@ -78,6 +86,13 @@ export default function DashboardPage() {
       localStorage.setItem('weeklyActivityData', JSON.stringify(weeklyActivity));
     }
   }, [weeklyActivity, isLoaded]);
+  
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('questCompletionData', JSON.stringify(questCompletions));
+    }
+  }, [questCompletions, isLoaded]);
+
 
   const handleQuestCompletion = (questId: string, questType: keyof typeof quests) => {
     const questToComplete =
@@ -100,6 +115,12 @@ export default function DashboardPage() {
           ),
         };
       });
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      setQuestCompletions(prevCompletions => ({
+          ...prevCompletions,
+          [questId]: todayStr,
+      }));
 
       setPlayer(prevPlayer => {
           const {
@@ -155,22 +176,19 @@ export default function DashboardPage() {
             });
           }
 
-          // --- New Streak Logic ---
           const today = new Date();
           const lastDate = prevLastCompletionDate ? new Date(prevLastCompletionDate) : null;
           let newStreak = prevStreak;
 
           if (!lastDate || !isSameDay(today, lastDate)) {
-            // It's a new day of activity
             if (lastDate && isSameDay(subDays(today, 1), lastDate)) {
-              newStreak += 1; // It was yesterday, so we continue the streak
+              newStreak += 1;
             } else {
-              newStreak = 1; // It wasn't yesterday, so reset streak to 1
+              newStreak = 1;
             }
           }
           const newLastCompletionDate = today.toISOString().split('T')[0];
           
-          // Update Personal Bests
           const newBests: PersonalBest[] = JSON.parse(JSON.stringify(prevBests));
 
           const highestLevelBest = newBests.find(b => b.title === 'Highest Level Achieved');
