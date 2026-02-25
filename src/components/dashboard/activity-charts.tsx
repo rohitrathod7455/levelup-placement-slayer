@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { weeklyActivity as staticWeeklyActivity } from '@/lib/data';
+import { weeklyActivity as staticWeeklyActivity, mainQuests as defaultMainQuests, sideQuests as defaultSideQuests, emergencyQuest, type Quest } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import {
   Tooltip as ShadTooltip,
@@ -56,15 +56,59 @@ const ProgressHeatmap = () => {
 
   useEffect(() => {
     setIsClient(true);
-    const data = Array.from({ length: 365 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - 365 + i);
-      return {
-          date: date.toISOString().slice(0, 10),
-          count: Math.floor(Math.random() * 150),
-      };
-    });
-    setHeatmapData(data);
+    
+    try {
+        // Load quests from localStorage
+        const storedMain = localStorage.getItem('customMainQuests');
+        const storedSide = localStorage.getItem('customSideQuests');
+        const allDefinedQuests: Quest[] = [
+            ...(storedMain ? JSON.parse(storedMain) : defaultMainQuests),
+            ...(storedSide ? JSON.parse(storedSide) : defaultSideQuests),
+            emergencyQuest,
+        ];
+        const questsById = new Map(allDefinedQuests.map(q => [q.id, q]));
+
+        // Load quest completions from localStorage
+        const savedCompletionsJSON = localStorage.getItem('questCompletionData');
+        const completions: { [key: string]: string } = savedCompletionsJSON ? JSON.parse(savedCompletionsJSON) : {};
+
+        // Calculate XP per day
+        const xpByDate: { [date: string]: number } = {};
+        for (const questId in completions) {
+            const completionDate = completions[questId];
+            const quest = questsById.get(questId);
+            if (quest) {
+                xpByDate[completionDate] = (xpByDate[completionDate] || 0) + quest.xp;
+            }
+        }
+        
+        // Generate heatmap data for the last 365 days
+        const today = new Date();
+        const data = Array.from({ length: 365 }, (_, i) => {
+          const date = new Date(today);
+          date.setDate(date.getDate() - (364 - i));
+          const dateStr = date.toISOString().slice(0, 10);
+          return {
+              date: dateStr,
+              count: xpByDate[dateStr] || 0,
+          };
+        });
+
+        setHeatmapData(data);
+    } catch (e) {
+      // In case of parsing errors or other issues, fall back to empty data
+      console.error("Failed to generate heatmap data:", e);
+      const today = new Date();
+      const data = Array.from({ length: 365 }, (_, i) => {
+          const date = new Date(today);
+          date.setDate(date.getDate() - (364 - i));
+          return {
+              date: date.toISOString().slice(0, 10),
+              count: 0,
+          };
+      });
+      setHeatmapData(data);
+    }
   }, []);
 
   const getDotColor = (count: number) => {
@@ -108,7 +152,7 @@ const ProgressHeatmap = () => {
                   <div className={cn('h-3 w-3 rounded-sm', getDotColor(day.count))} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{day.count} XP on {day.date}</p>
+                  <p>{day.count > 0 ? `${day.count} XP` : 'No XP'} on {day.date}</p>
                 </TooltipContent>
               </ShadTooltip>
             ))}

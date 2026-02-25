@@ -10,39 +10,67 @@ import { Separator } from '@/components/ui/separator';
 import { Flame, LayoutDashboard, Settings, Star, User } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ranks, type Rank } from '@/lib/data';
+import { ranks, type Player, initialPlayerData } from '@/lib/data';
 import { RankBadge } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PlayerCard = () => {
   const defaultAvatar = PlaceHolderImages.find(p => p.id === 'player-avatar')?.imageUrl || '';
   const [avatar, setAvatar] = useState(defaultAvatar);
-  const rank: Rank = 'E'; // Example rank
+  const [player, setPlayer] = useState<Player | null>(null);
+
+  const rank = player?.rank || 'E';
   const rankInfo = ranks[rank];
 
   useEffect(() => {
-    const updateAvatar = () => {
+    const updatePlayerData = () => {
       const storedAvatar = localStorage.getItem('playerAvatar');
-      if (storedAvatar) {
-        setAvatar(storedAvatar);
+      setAvatar(storedAvatar || defaultAvatar);
+
+      const savedPlayer = localStorage.getItem('playerData');
+      if (savedPlayer) {
+        try {
+          setPlayer(JSON.parse(savedPlayer));
+        } catch (e) {
+          setPlayer(initialPlayerData);
+        }
       } else {
-        setAvatar(defaultAvatar);
+        setPlayer(initialPlayerData);
       }
     };
 
-    updateAvatar();
+    updatePlayerData();
 
-    window.addEventListener('storage', updateAvatar);
-    window.addEventListener('avatarChanged', updateAvatar);
+    // Listen for changes from other components/tabs
+    window.addEventListener('storage', updatePlayerData);
+    window.addEventListener('avatarChanged', updatePlayerData);
+    window.addEventListener('playerDataChanged', updatePlayerData);
 
     return () => {
-      window.removeEventListener('storage', updateAvatar);
-      window.removeEventListener('avatarChanged', updateAvatar);
+      window.removeEventListener('storage', updatePlayerData);
+      window.removeEventListener('avatarChanged', updatePlayerData);
+      window.removeEventListener('playerDataChanged', updatePlayerData);
     };
   }, [defaultAvatar]);
+  
+  if (!player) {
+    return (
+        <div className="flex flex-col items-center p-4 text-center">
+            <div className="relative mb-3">
+                <Skeleton className="h-20 w-20 rounded-full" />
+                <div className="absolute -bottom-2 -right-2 bg-card p-1 rounded-full border border-primary">
+                    <Skeleton className="w-6 h-6 rounded-full" />
+                </div>
+            </div>
+            <Skeleton className="h-5 w-24 mb-1" />
+            <Skeleton className="h-4 w-40" />
+        </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center p-4 text-center">
@@ -59,8 +87,8 @@ const PlayerCard = () => {
            <RankBadge rank={rank} className={cn('w-6 h-6', rankInfo.color)} />
         </div>
       </div>
-      <h2 className="text-lg font-bold font-headline">Player Rohit</h2>
-      <p className="text-sm text-muted-foreground">Shadow Monarch in Training</p>
+      <h2 className="text-lg font-bold font-headline">{player.name}</h2>
+      <p className="text-sm text-muted-foreground">{player.title}</p>
     </div>
   );
 };
